@@ -1,8 +1,7 @@
 
 ""
 import { IProduct } from "@/types/product";
-import { PRODUCTS } from "@/utils/product";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ICartItem {
     product: IProduct;
@@ -12,12 +11,59 @@ interface ICartItem {
 interface ICartState {
     items: ICartItem[];
     products: IProduct[];
+    filteredProducts: IProduct[];
+    selectedProduct: IProduct | null;
+    status: "idle" | "loading" | "succeeded" | "failed";
+    error: string | null;
 }
 
 const initialState: ICartState = {
     items: [],
-    products: PRODUCTS,
+    products: [],
+    filteredProducts: [],
+    selectedProduct: null,
+    status: "idle",
+    error: null,
 };
+
+
+export const fetchProductById = createAsyncThunk(
+    "cart/fetchProductById",
+    async (id: string) => {
+        const response = await fetch(
+            `https://api.escuelajs.co/api/v1/products/${id}`,
+            { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch product");
+        }
+
+        const data: IProduct = await response.json();
+        console.log(data,'dataaaaa fetchProductById');
+        
+        return data;
+    }
+);
+
+export const fetchProducts = createAsyncThunk(
+    "cart/fetchProducts",
+    async () => {
+        const response = await fetch(
+            "https://api.escuelajs.co/api/v1/products",
+            { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch products");
+        }
+
+        const data: IProduct[] = await response.json();
+        console.log(data,'dataaaaaaa');
+        
+        return data;
+    }
+);
 
 const cartSlice = createSlice({
     initialState,
@@ -52,12 +98,43 @@ const cartSlice = createSlice({
         filterProduct: (state, action: PayloadAction<string>) => {
             const searchTerm = action.payload;
 
-            state.products = PRODUCTS.filter((item) =>
-                item.name.toLowerCase().includes(searchTerm) ||
-                item.category.toLowerCase().includes(searchTerm)
+             state.filteredProducts = state.products.filter((item) =>
+                item.title?.toLowerCase().includes(searchTerm) ||
+                item.category?.name?.toLowerCase().includes(searchTerm)
             );
         },
-    }
-})
+    },
+
+        extraReducers: (builder) => {
+        builder
+            .addCase(fetchProducts.pending, (state) => {
+                state.status = "loading";
+                state.error = null;
+            })
+            .addCase(fetchProducts.fulfilled, (state, action) => {
+                state.status = "succeeded";
+                state.products = action.payload;
+                state.filteredProducts = action.payload; 
+            })
+            .addCase(fetchProducts.rejected, (state, action) => {
+                state.status = "failed";
+                state.error = action.error.message ?? "Something went wrong";
+            })
+
+            .addCase(fetchProductById.pending, (state) => {
+            state.status = "loading";
+            state.error = null;
+            })
+            .addCase(fetchProductById.fulfilled, (state, action) => {
+            state.status = "succeeded";
+            state.selectedProduct = action.payload;
+            })
+            .addCase(fetchProductById.rejected, (state, action) => {
+            state.status = "failed";
+            state.error = action.error.message ?? "Product not found";
+            });
+   },
+});
+
 export const { addToCart, removeFromCart, filterProduct } = cartSlice.actions;
 export default cartSlice.reducer;

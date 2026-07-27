@@ -12,6 +12,7 @@ import { useDispatch } from "react-redux";
 
 const Cart = () => {
     const items = useAppSelector((state) => state.cart.items);
+    
     const router = useRouter()
     const dispatch = useDispatch()
     const subtotal = items.reduce((acc, item) => acc + item.product.price *
@@ -44,7 +45,8 @@ const Cart = () => {
         );
     }
 
-    const handleRemove = (productId: string, quantity:number) => {
+    const handleRemove = (productId: number, quantity:number) => {
+        
         dispatch(removeFromCart({productId,quantity}))
     }
     return (
@@ -66,16 +68,16 @@ const Cart = () => {
                                     onClick={() =>
                                         router.push(`/product/${product.id}`)}>
                                     <Image
-                                        src={product.image}
+                                        src={product.images[0]}
                                         width={96}
                                         height={96}
-                                        alt={product.name}
+                                        alt={product.title}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
 
                                 <div className="flex flex-col gap-2">
-                                    <h3 className="font-medium leading-tight">{product.name}</h3>
+                                    <h3 className="font-medium leading-tight">{product.title}</h3>
                                     <p className="text-sm text-pale-sky">{product.price} each</p>
                                     <QuantityButton product={product} />
                                 </div>

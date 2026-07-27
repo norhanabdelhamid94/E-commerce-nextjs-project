@@ -1,17 +1,25 @@
 "use client";
-import { addToCart } from "@/store/cartSlice";
-import { useAppSelector } from "@/store/hooks";
+import { addToCart, fetchProducts } from "@/store/cartSlice";
 import { IProduct } from "@/types/product";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
-import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import QuantityButton from "./QuantityButton";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 
 const Products = () => {
-    const { items, products } = useAppSelector((state) => state.cart)
-    const dispatch = useDispatch();
+    const { filteredProducts, status, error, items } = useAppSelector((state) => state.cart)
+    const dispatch = useAppDispatch();
     const router = useRouter()
+    const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});  // ✅
+    useEffect(() => {
+
+        dispatch(fetchProducts());
+    }, [dispatch]);
+
+
     const handleAddToCart = (
         e: React.MouseEvent<HTMLButtonElement>,
         product: IProduct,
@@ -19,13 +27,23 @@ const Products = () => {
         e.stopPropagation();
         dispatch(addToCart({ product, quantity: 1 }));
     }
-    const handleProductClick = (id: string) => {
+
+    if (status === "loading") {
+        return <p className="text-center py-10">Loading products...</p>;
+    }
+
+    if (status === "failed") {
+        return <p className="text-center py-10 text-red-500">{error}</p>;
+    }
+
+    const handleProductClick = (id: any) => {
         router.push(`/product/${id}`)
     }
+
     return (
         <div className="py-6 px-20">
             <div className="grid grid-cols-4 gap-6 w-full">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                     <div
                         key={product.id}
                         className="rounded-lg shadow-sm border border-athens-gray
@@ -34,11 +52,18 @@ const Products = () => {
                     >
                         <div className="aspect-square">
                             <Image
-                                src={product.image}
+                                src={
+                                    failedImages[product.id]
+                                        ? "/placeholder-image.svg"
+                                        : product.images?.[0] || "/placeholder-image.svg"
+                                }
                                 width={200}
                                 height={200}
-                                alt={product.name}
+                                alt={product.title}
                                 className="object-cover h-full w-full"
+                                onError={() =>
+                                    setFailedImages((prev) => ({ ...prev, [product.id]: true }))
+                                }
                             />
                         </div>
                         <div className='p-4 flex flex-col grow justify-between'>
@@ -47,16 +72,16 @@ const Products = () => {
                                     className="text-pale-sky text-xs font-medium 
                                 uppercase
                                 tracking-wider">
-                                    {product.category}
+                                    {product.category.name}
                                 </p>
                                 <h3 className="font-medium leading-tight text-base">
-                                    {product.name}</h3>
+                                    {product.title}</h3>
                             </div>
 
                             <div className="flex justify-between items-center mt-4">
                                 <p className='mt-2 text-lg font-semibold text-shark'>
                                     ${product.price}</p>
-                                {items.some((item) => item.product.id === product.id) ? (<QuantityButton product= {product}/>) :
+                                {items.some((item) => item.product.id === product.id) ? (<QuantityButton product={product} />) :
                                     (
                                         <button className='font-medium text-sm px-3 border
                                     border-athens-gary py-2 cursor-pointer
@@ -71,14 +96,14 @@ const Products = () => {
                     </div>
                 ))}
             </div>
-            {products.length === 0? (
+            {filteredProducts.length === 0 ? (
                 <div className="flex flex-col gap-4 items-center py-8">
                     <p className="text-lg font-medium">No products found</p>
                     <p className="text-pale-sky">
-                        Try adjusting your search to find what &apos;re looking for. 
+                        Try adjusting your search to find what &apos;re looking for.
                     </p>
                 </div>
-            ): null}
+            ) : null}
         </div>
     );
 };
