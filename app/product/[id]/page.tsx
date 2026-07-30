@@ -1,61 +1,51 @@
 "use client";
 
-import QuantityButton from "@/components/QuantityButton";
-import { addToCart, fetchProductById } from "@/store/cartSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchProductById, addToCart } from "@/store/cartSlice";
 
 const ProductDetails = () => {
     const { id } = useParams();
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const {
-        selectedProduct: product,
-        items,
-        status,
-        error,
-    } = useAppSelector((state) => state.cart);
+    const { selectedProduct, status, error, items } = useAppSelector(
+        (state) => state.cart
+    );
+
+    const [currentImageIndex, setCurrentImageIndex] = useState(0); // ✅ الـ state بتاع الكاروسيل
 
     useEffect(() => {
         if (id) {
             dispatch(fetchProductById(id as string));
+            setCurrentImageIndex(0); // ✅ رجّعي للصورة الأولى لو المستخدم دخل منتج جديد
         }
-    }, [dispatch, id]);
+    }, [id, dispatch]);
 
     const handleAddToCart = () => {
-        if (!product) return;
-
-        dispatch(
-            addToCart({
-                product,
-                quantity: 1,
-            })
-        );
+        if (selectedProduct) {
+            dispatch(addToCart({ product: selectedProduct, quantity: 1 }));
+        }
     };
 
     if (status === "loading") {
-        return (
-            <div className="flex items-center justify-center h-[70vh]">
-                <h1 className="text-2xl font-semibold">Loading...</h1>
-            </div>
-        );
+        return <p className="text-center py-16">Loading product...</p>;
     }
 
-    if (status === "failed") {
+    if (status === "failed" || !selectedProduct) {
         return (
-            <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
-                <h1 className="text-2xl font-bold">
-                    {error || "Something went wrong"}
-                </h1>
-
+            <div className="flex flex-col items-center justify-center gap-2 mt-16">
+                <h1 className="text-2xl font-bold">Product not found</h1>
+                <p className="text-pale-sky">
+                    The product you&apos;re looking for doesn&apos;t exist.
+                </p>
                 <Link
                     href="/"
-                    className="bg-red-500 text-white px-4 py-2 rounded-md"
+                    className="text-sm font-medium py-2 px-4 rounded-md bg-red-500 text-white mt-6"
                 >
                     Back to Products
                 </Link>
@@ -63,84 +53,141 @@ const ProductDetails = () => {
         );
     }
 
-    if (!product) {
-        return (
-            <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
-                <h1 className="text-2xl font-bold">
-                    Product not found
-                </h1>
+    const product = selectedProduct;
+    const images = product.images?.length ? product.images : ["/placeholder-image.svg"];
+    const isInCart = items.some((item) => item.product.id === product.id);
 
-                <Link
-                    href="/"
-                    className="bg-red-500 text-white px-4 py-2 rounded-md"
-                >
-                    Back to Products
-                </Link>
-            </div>
+    // ✅ دوال التنقل بين الصور
+    const goToPrevious = () => {
+        setCurrentImageIndex((prev) =>
+            prev === 0 ? images.length - 1 : prev - 1
         );
-    }
+    };
+
+    const goToNext = () => {
+        setCurrentImageIndex((prev) =>
+            prev === images.length - 1 ? 0 : prev + 1
+        );
+    };
 
     return (
-        <div className="py-8 max-w-7xl mx-auto px-4">
+        <div className="py-8 max-w-7xl m-auto">
             <Link
                 href="/"
-                className="flex items-center gap-2 text-sm font-medium"
+                className="flex items-center justify-center gap-2 font-medium text-sm"
             >
                 <ArrowLeft className="h-4 w-4" />
                 Back
             </Link>
 
-            <div className="flex flex-col lg:flex-row gap-10 mt-8">
-                <div className="flex-1">
-                    <div className="aspect-square overflow-hidden rounded-2xl bg-gray-100">
+            <div className="flex gap-8 mt-6 w-full h-full">
+                {/* ✅ الكاروسيل هنا */}
+                <div className="flex-1 flex flex-col gap-3">
+                    <div className="relative aspect-square overflow-hidden rounded-2xl h-[36.5rem]">
                         <Image
-                            src={
-                                product.images?.[0] ||
-                                "/placeholder-image.svg"
-                            }
-                            alt={product.title}
-                            width={600}
-                            height={600}
-                            className="w-full h-full object-cover"
+                            src={images[currentImageIndex]}
+                            fill
+                            alt={`${product.title} - image ${currentImageIndex + 1}`}
+                            className="object-cover"
                         />
-                    </div>
-                </div>
 
-                <div className="flex-1">
-                    <p className="uppercase text-sm tracking-wider text-red-500 font-medium">
-                        {product.category?.name}
-                    </p>
-
-                    <h1 className="text-4xl font-bold mt-2">
-                        {product.title}
-                    </h1>
-
-                    <p className="text-3xl font-bold mt-5">
-                        ${product.price}
-                    </p>
-
-                    <p className="mt-6 leading-8 text-gray-600">
-                        {product.description}
-                    </p>
-
-                    <div className="flex gap-4 mt-8">
-                        {items.some(
-                            (item) => item.product.id === product.id
-                        ) ? (
-                            <QuantityButton product={product} />
-                        ) : (
+                        {/* زرار السابق */}
+                        {images.length > 1 && (
                             <button
-                                onClick={handleAddToCart}
-                                className="flex-1 bg-red-500 text-white rounded-md py-3 flex items-center justify-center gap-2 hover:bg-red-600 transition"
+                                onClick={goToPrevious}
+                                className="absolute left-3 top-1/2 -translate-y-1/2
+                                bg-white/80 hover:bg-white rounded-full p-2
+                                shadow-md cursor-pointer transition"
                             >
-                                <ShoppingCart className="w-5 h-5" />
-                                Add to Cart
+                                <ChevronLeft className="h-5 w-5" />
                             </button>
                         )}
 
+                        {/* زرار التالي */}
+                        {images.length > 1 && (
+                            <button
+                                onClick={goToNext}
+                                className="absolute right-3 top-1/2 -translate-y-1/2
+                                bg-white/80 hover:bg-white rounded-full p-2
+                                shadow-md cursor-pointer transition"
+                            >
+                                <ChevronRight className="h-5 w-5" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* النقط (Dots) تحت الصورة */}
+                    {images.length > 1 && (
+                        <div className="flex justify-center gap-2">
+                            {images.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setCurrentImageIndex(index)}
+                                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                                        index === currentImageIndex
+                                            ? "w-6 bg-red-500"
+                                            : "w-2 bg-athens-gray"
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* صور مصغرة (Thumbnails) - اختياري */}
+                    {images.length > 1 && (
+                        <div className="flex gap-2 mt-2">
+                            {images.map((img, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setCurrentImageIndex(index)}
+                                    className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
+                                        index === currentImageIndex
+                                            ? "border-red-500"
+                                            : "border-athens-gray"
+                                    }`}
+                                >
+                                    <Image
+                                        src={img}
+                                        width={64}
+                                        height={64}
+                                        alt={`thumbnail ${index + 1}`}
+                                        className="object-cover w-full h-full"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* تفاصيل المنتج */}
+                <div className="flex-1 flex flex-col gap-4">
+                    <p className="text-pale-sky text-xs font-medium uppercase tracking-wider">
+                        {product.category.name}
+                    </p>
+                    <h1 className="text-2xl font-bold leading-tight">
+                        {product.title}
+                    </h1>
+                    <p className="text-2xl font-semibold text-shark">
+                        ${product.price}
+                    </p>
+                    <p className="text-pale-sky text-sm leading-relaxed">
+                        {product.description}
+                    </p>
+
+                    <div className="flex gap-4 mt-6">
                         <button
+                            className="font-medium flex-3 text-sm border border-athens-gray
+                            py-2.5 cursor-pointer rounded-md flex items-center justify-center
+                            gap-2 shadow-xs bg-red-500 text-white"
+                            onClick={handleAddToCart}
+                        >
+                            <ShoppingCart className="h-4 w-4" />
+                            {isInCart ? "Added to Cart" : "Add to Cart"}
+                        </button>
+                        <button
+                            className="font-medium flex-1 text-sm border border-athens-gray
+                            cursor-pointer rounded-md shadow-xs"
                             onClick={() => router.push("/cart")}
-                            className="flex-1 border rounded-md py-3 hover:bg-gray-100 transition"
                         >
                             View Cart
                         </button>

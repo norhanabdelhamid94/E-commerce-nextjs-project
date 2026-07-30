@@ -12,7 +12,6 @@ import { useDispatch } from "react-redux";
 
 const Cart = () => {
     const items = useAppSelector((state) => state.cart.items);
-    
     const router = useRouter()
     const dispatch = useDispatch()
     const subtotal = items.reduce((acc, item) => acc + item.product.price *
@@ -46,7 +45,6 @@ const Cart = () => {
     }
 
     const handleRemove = (productId: number, quantity:number) => {
-        
         dispatch(removeFromCart({productId,quantity}))
     }
     return (

@@ -39,9 +39,7 @@ export const fetchProductById = createAsyncThunk(
             throw new Error("Failed to fetch product");
         }
 
-        const data: IProduct = await response.json();
-        console.log(data,'dataaaaa fetchProductById');
-        
+        const data: IProduct = await response.json();        
         return data;
     }
 );
@@ -58,9 +56,7 @@ export const fetchProducts = createAsyncThunk(
             throw new Error("Failed to fetch products");
         }
 
-        const data: IProduct[] = await response.json();
-        console.log(data,'dataaaaaaa');
-        
+        const data: IProduct[] = await response.json();        
         return data;
     }
 );

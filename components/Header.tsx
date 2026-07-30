@@ -17,10 +17,15 @@ export const Header = () => {
     const items = useAppSelector((state) => state.cart.items)
     const dispatch = useDispatch()
     const [searchTerm, setSearchTerm] = useState("")
-    
-    const totalQuantity = items.reduce((acc, curr) => curr.quantity + acc, 0)
 
-       useEffect(() => {
+    const totalQuantity = items.reduce((acc, curr) => curr.quantity + acc, 0)
+    const hideHeaderRoutes = ["/login", "/signup"];
+    const shouldHideHeader = hideHeaderRoutes.includes(pathname);
+
+    if (shouldHideHeader) {
+        return null; // ✅ متعرضيش أي حاجة خالص
+    }
+    useEffect(() => {
         const timer = setTimeout(() => {
             dispatch(filterProduct(searchTerm));
         }, 500);
