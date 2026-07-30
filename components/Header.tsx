@@ -22,9 +22,6 @@ export const Header = () => {
     const hideHeaderRoutes = ["/login", "/signup"];
     const shouldHideHeader = hideHeaderRoutes.includes(pathname);
 
-    if (shouldHideHeader) {
-        return null; // ✅ متعرضيش أي حاجة خالص
-    }
     useEffect(() => {
         const timer = setTimeout(() => {
             dispatch(filterProduct(searchTerm));
@@ -34,6 +31,9 @@ export const Header = () => {
             clearTimeout(timer);
         };
     }, [searchTerm, dispatch])
+      if (shouldHideHeader) {
+        return null; 
+    }
     return (
         <header
             className="sticky top-0 z-10 backdrop-blur w-full

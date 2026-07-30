@@ -1,15 +1,34 @@
 "use client";
 
+import { loginFunction } from "@/store/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Package } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const dispatch = useAppDispatch();
+    const router = useRouter();
+    const { accessToken, loading, error } = useAppSelector(
+        (state) => state.auth
+    );
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        if (accessToken) {
+            router.push("/");
+        }
+    }, [accessToken, router]);
+
+    const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log({ email, password });
+        dispatch(
+            loginFunction({
+                email,
+                password,
+            })
+        );
     };
 
     return (
@@ -40,7 +59,7 @@ const LoginPage = () => {
                     ادخلي بياناتك عشان تكمّلي التسوق
                 </p>
 
-                <form onSubmit={handleSubmit} className="flex flex-col">
+                <form onSubmit={handleLogin} className="flex flex-col">
                     <div className="flex flex-col gap-1 mb-4">
                         <label className="text-sm text-gray-600">
                             البريد الالكتروني
