@@ -12,6 +12,9 @@ import { useDispatch } from "react-redux";
 
 const Cart = () => {
     const items = useAppSelector((state) => state.cart.items);
+    const { accessToken } = useAppSelector(
+        (state) => state.auth
+    );
     const router = useRouter()
     const dispatch = useDispatch()
     const subtotal = items.reduce((acc, item) => acc + item.product.price *
@@ -44,9 +47,17 @@ const Cart = () => {
         );
     }
 
-    const handleRemove = (productId: number, quantity:number) => {
-        dispatch(removeFromCart({productId,quantity}))
+    const handleRemove = (productId: number, quantity: number) => {
+        dispatch(removeFromCart({ productId, quantity }))
     }
+
+    const handleCheckout = () => {
+        if (!accessToken) {
+            router.push("/login");
+        } else {
+            router.push("/checkout");
+        }
+    };
     return (
         <div className="py-8 max-w-7xl m-auto">
             <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
@@ -86,9 +97,9 @@ const Cart = () => {
                                     <button
                                         className="flex items-center gap-2 text-red-500
                                         cursor-pointer"
-                                        onClick={() => 
-                                            
-                                    handleRemove(product.id,quantity)}
+                                        onClick={() =>
+
+                                            handleRemove(product.id, quantity)}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                         Remove
@@ -106,7 +117,7 @@ const Cart = () => {
                 </div>
 
                 <div className="rounded-lg border shadow-sm sticky p-6 flex gap-4
-flex-col top-24 h-fit">
+                    flex-col top-24 h-fit">
                     <h1 className="tracking-tight text-2xl font-semibold leading-none">
                         Order Summary
                     </h1>
@@ -127,6 +138,7 @@ flex-col top-24 h-fit">
                         <button
                             className="bg-red-500 text-white rounded-lg
                         font-medium text-sm py-3 mt-2 cursor-pointer"
+                            onClick={handleCheckout}
                         >
                             Proceed to Checkout
                         </button>

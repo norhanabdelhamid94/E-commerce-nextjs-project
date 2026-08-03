@@ -11,7 +11,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState("");
     const dispatch = useAppDispatch();
     const router = useRouter();
-    const { accessToken, loading, error } = useAppSelector(
+    const { accessToken, error } = useAppSelector(
         (state) => state.auth
     );
 
@@ -85,7 +85,11 @@ const LoginPage = () => {
                             className="border rounded-md px-4 py-2 outline-none"
                         />
                     </div>
-
+                    {error && (
+                        <p className="text-sm text-red-600 mb-4">
+                            الإيميل أو كلمة المرور غير صحيحة
+                        </p>
+                    )}
                     <a href="#" className="text-sm text-red-600 text-left mb-6">
                         نسيتي كلمة المرور؟
                     </a>
