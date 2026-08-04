@@ -20,7 +20,7 @@ const Cart = () => {
     const subtotal = items.reduce((acc, item) => acc + item.product.price *
         item.quantity, 0);
 
-    const taxRate = subtotal * 0.8;
+    const taxRate = subtotal * 0.08;
 
     if (!items.length) {
         return (
@@ -59,12 +59,12 @@ const Cart = () => {
         }
     };
     return (
-        <div className="py-8 max-w-7xl m-auto">
+        <div className="px-4 md:px-8 lg:px-20 max-w-7xl m-auto">
             <h1 className="text-3xl font-bold tracking-tight">Shopping Cart</h1>
             <p className="text-pale-sky mt-2">{items.length} items in your cart</p>
 
-            <div className="mt-8 grid grid-cols-3 gap-8">
-                <div className="col-span-2">
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
                     <div className="rounded-lg border p-6 flex flex-col gap-4">
                         {items.map(({ product, quantity }) => (
                             <div
@@ -116,8 +116,7 @@ const Cart = () => {
                     </Link>
                 </div>
 
-                <div className="rounded-lg border shadow-sm sticky p-6 flex gap-4
-                    flex-col top-24 h-fit">
+                <div className="rounded-lg border shadow-sm p-6 flex flex-col gap-4 h-fit lg:sticky lg:top-24">
                     <h1 className="tracking-tight text-2xl font-semibold leading-none">
                         Order Summary
                     </h1>

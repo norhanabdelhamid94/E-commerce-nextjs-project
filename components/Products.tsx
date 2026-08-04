@@ -41,8 +41,8 @@ const Products = () => {
     }
 
     return (
-        <div className="py-6 px-20">
-            <div className="grid grid-cols-4 gap-6 w-full">
+        <div className="py-6 px-4 md:px-8 lg:px-20">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 gap-6 w-full">
                 {filteredProducts.map((product) => (
                     <div
                         key={product.id}

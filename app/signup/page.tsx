@@ -45,7 +45,7 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="flex min-h-screen">
+        <div className="flex flex-col lg:flex-row min-h-screen">
             <div className="flex-1 flex flex-col justify-between p-8 bg-red-500">
                 <div className="flex items-center gap-2">
                     <Package className="text-white" />

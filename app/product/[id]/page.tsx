@@ -17,12 +17,12 @@ const ProductDetails = () => {
         (state) => state.cart
     );
 
-    const [currentImageIndex, setCurrentImageIndex] = useState(0); // ✅ الـ state بتاع الكاروسيل
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
         if (id) {
             dispatch(fetchProductById(id as string));
-            setCurrentImageIndex(0); // ✅ رجّعي للصورة الأولى لو المستخدم دخل منتج جديد
+            setCurrentImageIndex(0);
         }
     }, [id, dispatch]);
 
@@ -57,7 +57,6 @@ const ProductDetails = () => {
     const images = product.images?.length ? product.images : ["/placeholder-image.svg"];
     const isInCart = items.some((item) => item.product.id === product.id);
 
-    // ✅ دوال التنقل بين الصور
     const goToPrevious = () => {
         setCurrentImageIndex((prev) =>
             prev === 0 ? images.length - 1 : prev - 1
@@ -71,19 +70,20 @@ const ProductDetails = () => {
     };
 
     return (
-        <div className="py-8 max-w-7xl m-auto">
+        <div className="py-8 px-4 lg:px-0 max-w-7xl m-auto">
             <Link
                 href="/"
-                className="flex items-center justify-center gap-2 font-medium text-sm"
+                className="flex items-center justify-center gap-2 font-medium text-sm w-fit"
             >
                 <ArrowLeft className="h-4 w-4" />
                 Back
             </Link>
 
-            <div className="flex gap-8 mt-6 w-full h-full">
-                {/* ✅ الكاروسيل هنا */}
+            {/* ✅ عمودي على الموبايل، أفقي على الديسكتوب */}
+            <div className="flex flex-col lg:flex-row gap-8 mt-6 w-full">
+                {/* الكاروسيل */}
                 <div className="flex-1 flex flex-col gap-3">
-                    <div className="relative aspect-square overflow-hidden rounded-2xl h-[36.5rem]">
+                    <div className="relative aspect-square overflow-hidden rounded-2xl w-full h-auto lg:h-[36.5rem]">
                         <Image
                             src={images[currentImageIndex]}
                             fill
@@ -91,7 +91,6 @@ const ProductDetails = () => {
                             className="object-cover"
                         />
 
-                        {/* زرار السابق */}
                         {images.length > 1 && (
                             <button
                                 onClick={goToPrevious}
@@ -103,7 +102,6 @@ const ProductDetails = () => {
                             </button>
                         )}
 
-                        {/* زرار التالي */}
                         {images.length > 1 && (
                             <button
                                 onClick={goToNext}
@@ -116,7 +114,6 @@ const ProductDetails = () => {
                         )}
                     </div>
 
-                    {/* النقط (Dots) تحت الصورة */}
                     {images.length > 1 && (
                         <div className="flex justify-center gap-2">
                             {images.map((_, index) => (
@@ -133,14 +130,13 @@ const ProductDetails = () => {
                         </div>
                     )}
 
-                    {/* صور مصغرة (Thumbnails) - اختياري */}
                     {images.length > 1 && (
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2 mt-2 overflow-x-auto">
                             {images.map((img, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setCurrentImageIndex(index)}
-                                    className={`h-16 w-16 rounded-lg overflow-hidden border-2 cursor-pointer ${
+                                    className={`h-16 w-16 shrink-0 rounded-lg overflow-hidden border-2 cursor-pointer ${
                                         index === currentImageIndex
                                             ? "border-red-500"
                                             : "border-athens-gray"
@@ -164,19 +160,19 @@ const ProductDetails = () => {
                     <p className="text-pale-sky text-xs font-medium uppercase tracking-wider">
                         {product.category.name}
                     </p>
-                    <h1 className="text-2xl font-bold leading-tight">
+                    <h1 className="text-xl lg:text-2xl font-bold leading-tight">
                         {product.title}
                     </h1>
-                    <p className="text-2xl font-semibold text-shark">
+                    <p className="text-xl lg:text-2xl font-semibold text-shark">
                         ${product.price}
                     </p>
                     <p className="text-pale-sky text-sm leading-relaxed">
                         {product.description}
                     </p>
 
-                    <div className="flex gap-4 mt-6">
+                    <div className="flex flex-col sm:flex-row gap-4 mt-6">
                         <button
-                            className="font-medium flex-3 text-sm border border-athens-gray
+                            className="font-medium sm:flex-3 text-sm border border-athens-gray
                             py-2.5 cursor-pointer rounded-md flex items-center justify-center
                             gap-2 shadow-xs bg-red-500 text-white"
                             onClick={handleAddToCart}
@@ -185,8 +181,8 @@ const ProductDetails = () => {
                             {isInCart ? "Added to Cart" : "Add to Cart"}
                         </button>
                         <button
-                            className="font-medium flex-1 text-sm border border-athens-gray
-                            cursor-pointer rounded-md shadow-xs"
+                            className="font-medium sm:flex-1 text-sm border border-athens-gray
+                            py-2.5 sm:py-0 cursor-pointer rounded-md shadow-xs"
                             onClick={() => router.push("/cart")}
                         >
                             View Cart
