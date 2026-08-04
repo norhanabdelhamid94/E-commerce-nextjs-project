@@ -78,19 +78,23 @@ const Products = () => {
                                     {product.title}</h3>
                             </div>
 
-                            <div className="flex justify-between items-center mt-4">
-                                <p className='mt-2 text-lg font-semibold text-shark'>
-                                    ${product.price}</p>
-                                {items.some((item) => item.product.id === product.id) ? (<QuantityButton product={product} />) :
-                                    (
-                                        <button className='font-medium text-sm px-3 border
-                                    border-athens-gary py-2 cursor-pointer
-                                    rounded-md flex items-center justify-center'
-                                            onClick={(e) => handleAddToCart(e, product)}>
-                                            <ShoppingCart className="w-4 h-4" />
-                                            Add to Cart
-                                        </button>
-                                    )}
+                            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-2 mt-4">
+                                <p className="text-lg font-semibold text-shark">
+                                    ${product.price}
+                                </p>
+                                {items.some((item) => item.product.id === product.id) ? (
+                                    <QuantityButton product={product} />
+                                ) : (
+                                    <button
+                                        className="w-full lg:w-auto font-medium text-sm px-3 border
+                                                    border-athens-gray py-2 cursor-pointer
+                                                    rounded-md flex items-center justify-center gap-2"
+                                        onClick={(e) => handleAddToCart(e, product)}
+                                    >
+                                        <ShoppingCart className="w-4 h-4" />
+                                        Add to Cart
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
