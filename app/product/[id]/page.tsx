@@ -17,8 +17,13 @@ const ProductDetails = () => {
     const { selectedProduct, status, error, items } = useAppSelector(
         (state) => state.cart
     );
-
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imgFailed, setImgFailed] = useState(false);
+    useEffect(() => {
+        setImageLoading(true);
+        setImgFailed(false);
+    }, [currentImageIndex]);
 
     useEffect(() => {
         if (id) {
@@ -87,13 +92,21 @@ const ProductDetails = () => {
                 {/* الكاروسيل */}
                 <div className="flex-1 flex flex-col gap-3">
                     <div className="relative aspect-square overflow-hidden rounded-2xl w-full h-auto lg:h-[36.5rem]">
+                        {imageLoading && (
+                            <div className="absolute inset-0 bg-athens-gray animate-pulse" />
+                        )}
+
                         <Image
-                            src={images[currentImageIndex]}
+                            src={imgFailed ? "/placeholder-image.svg" : images[currentImageIndex]}
                             fill
                             alt={`${product.title} - image ${currentImageIndex + 1}`}
                             className="object-cover"
+                            onLoad={() => setImageLoading(false)}
+                            onError={() => {
+                                setImgFailed(true);
+                                setImageLoading(false);
+                            }}
                         />
-
                         {images.length > 1 && (
                             <button
                                 onClick={goToPrevious}
@@ -124,8 +137,8 @@ const ProductDetails = () => {
                                     key={index}
                                     onClick={() => setCurrentImageIndex(index)}
                                     className={`h-2 rounded-full transition-all cursor-pointer ${index === currentImageIndex
-                                            ? "w-6 bg-red-500"
-                                            : "w-2 bg-athens-gray"
+                                        ? "w-6 bg-red-500"
+                                        : "w-2 bg-athens-gray"
                                         }`}
                                 />
                             ))}
@@ -139,8 +152,8 @@ const ProductDetails = () => {
                                     key={index}
                                     onClick={() => setCurrentImageIndex(index)}
                                     className={`h-16 w-16 shrink-0 rounded-lg overflow-hidden border-2 cursor-pointer ${index === currentImageIndex
-                                            ? "border-red-500"
-                                            : "border-athens-gray"
+                                        ? "border-red-500"
+                                        : "border-athens-gray"
                                         }`}
                                 >
                                     <Image
@@ -171,27 +184,27 @@ const ProductDetails = () => {
                         {product.description}
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                        {
-                            items.some(
-                                (item) => item.product.id === product.id
-                            ) ? (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-6">
+                        {items.some((item) => item.product.id === product.id) ? (
+                            <div className="flex items-center sm:flex-3">
                                 <QuantityButton product={product} />
-                            ) : (
-                                <button
-                                    className="font-medium sm:flex-3 text-sm border border-athens-gray
-                            py-2.5 cursor-pointer rounded-md flex items-center justify-center
-                            gap-2 shadow-xs bg-red-500 text-white"
-                                    onClick={handleAddToCart}
-                                >
-                                    <ShoppingCart className="h-4 w-4" />
-                                    {isInCart ? "Added to Cart" : "Add to Cart"}
-                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className="font-medium sm:flex-3 text-sm border border-athens-gray
+                                py-2.5 cursor-pointer rounded-md flex items-center justify-center
+                                gap-2 shadow-xs bg-red-500 text-white"
+                                onClick={handleAddToCart}
+                            >
+                                <ShoppingCart className="h-4 w-4" />
+                                {isInCart ? "Added to Cart" : "Add to Cart"}
+                            </button>
+                        )}
 
-                            )}
                         <button
                             className="font-medium sm:flex-1 text-sm border border-athens-gray
-                            py-2.5 sm:py-0 cursor-pointer rounded-md shadow-xs"
+                            py-2.5 cursor-pointer rounded-md shadow-xs
+                            flex items-center justify-center"
                             onClick={() => router.push("/cart")}
                         >
                             View Cart
