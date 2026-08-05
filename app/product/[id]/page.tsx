@@ -193,7 +193,7 @@ const ProductDetails = () => {
                             <button
                                 className="font-medium sm:flex-3 text-sm border border-athens-gray
                                 py-2.5 cursor-pointer rounded-md flex items-center justify-center
-                                gap-2 shadow-xs bg-red-500 text-white"
+                                gap-2 shadow-xs bg-red-500 text-white p-9"
                                 onClick={handleAddToCart}
                             >
                                 <ShoppingCart className="h-4 w-4" />
@@ -202,9 +202,9 @@ const ProductDetails = () => {
                         )}
 
                         <button
-                            className="font-medium sm:flex-1 text-sm border border-athens-gray
+                            className="font-medium  text-sm border border-athens-gray
                             py-2.5 cursor-pointer rounded-md shadow-xs
-                            flex items-center justify-center"
+                            flex items-center justify-center p-9"
                             onClick={() => router.push("/cart")}
                         >
                             View Cart
