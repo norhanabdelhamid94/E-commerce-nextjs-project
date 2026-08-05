@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchProductById, addToCart } from "@/store/cartSlice";
+import QuantityButton from "@/components/QuantityButton";
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -54,6 +55,8 @@ const ProductDetails = () => {
     }
 
     const product = selectedProduct;
+    console.log(selectedProduct, 'selectedProduct');
+
     const images = product.images?.length ? product.images : ["/placeholder-image.svg"];
     const isInCart = items.some((item) => item.product.id === product.id);
 
@@ -120,11 +123,10 @@ const ProductDetails = () => {
                                 <button
                                     key={index}
                                     onClick={() => setCurrentImageIndex(index)}
-                                    className={`h-2 rounded-full transition-all cursor-pointer ${
-                                        index === currentImageIndex
+                                    className={`h-2 rounded-full transition-all cursor-pointer ${index === currentImageIndex
                                             ? "w-6 bg-red-500"
                                             : "w-2 bg-athens-gray"
-                                    }`}
+                                        }`}
                                 />
                             ))}
                         </div>
@@ -136,11 +138,10 @@ const ProductDetails = () => {
                                 <button
                                     key={index}
                                     onClick={() => setCurrentImageIndex(index)}
-                                    className={`h-16 w-16 shrink-0 rounded-lg overflow-hidden border-2 cursor-pointer ${
-                                        index === currentImageIndex
+                                    className={`h-16 w-16 shrink-0 rounded-lg overflow-hidden border-2 cursor-pointer ${index === currentImageIndex
                                             ? "border-red-500"
                                             : "border-athens-gray"
-                                    }`}
+                                        }`}
                                 >
                                     <Image
                                         src={img}
@@ -171,15 +172,23 @@ const ProductDetails = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                        <button
-                            className="font-medium sm:flex-3 text-sm border border-athens-gray
+                        {
+                            items.some(
+                                (item) => item.product.id === product.id
+                            ) ? (
+                                <QuantityButton product={product} />
+                            ) : (
+                                <button
+                                    className="font-medium sm:flex-3 text-sm border border-athens-gray
                             py-2.5 cursor-pointer rounded-md flex items-center justify-center
                             gap-2 shadow-xs bg-red-500 text-white"
-                            onClick={handleAddToCart}
-                        >
-                            <ShoppingCart className="h-4 w-4" />
-                            {isInCart ? "Added to Cart" : "Add to Cart"}
-                        </button>
+                                    onClick={handleAddToCart}
+                                >
+                                    <ShoppingCart className="h-4 w-4" />
+                                    {isInCart ? "Added to Cart" : "Add to Cart"}
+                                </button>
+
+                            )}
                         <button
                             className="font-medium sm:flex-1 text-sm border border-athens-gray
                             py-2.5 sm:py-0 cursor-pointer rounded-md shadow-xs"
