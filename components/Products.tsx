@@ -1,7 +1,7 @@
 "use client";
-import { addToCart, fetchProducts } from "@/store/cartSlice";
+import { addToCart, fetchProducts, fetchTotalProductsCount, setPage } from "@/store/cartSlice";
 import { IProduct } from "@/types/product";
-import { ShoppingCart } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import QuantityButton from "./QuantityButton";
@@ -10,16 +10,31 @@ import { useEffect, useState } from "react";
 
 
 const Products = () => {
-    const { filteredProducts, status, error, items } = useAppSelector((state) => state.cart)
+    const { filteredProducts, status, error, items, currentPage, hasMore, totalProducts } = useAppSelector((state) => state.cart)
     const dispatch = useAppDispatch();
     const router = useRouter()
-    const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});  // ✅
+    const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
+
+    const totalPages = Math.ceil(totalProducts / 12);
+    const getVisiblePages = () => { 
+        const maxVisible = 5;
+        let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let end = start + maxVisible - 1;
+
+        if (end > totalPages) {
+            end = totalPages;
+            start = Math.max(1, end - maxVisible + 1);
+        }
+
+        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    };
     useEffect(() => {
+        dispatch(fetchProducts(currentPage));
+    }, [dispatch, currentPage]);
 
-        dispatch(fetchProducts());
+    useEffect(() => {
+        dispatch(fetchTotalProductsCount()); // ✅ ضيفي الـ useEffect ده
     }, [dispatch]);
-
-
     const handleAddToCart = (
         e: React.MouseEvent<HTMLButtonElement>,
         product: IProduct,
@@ -39,11 +54,19 @@ const Products = () => {
     const handleProductClick = (id: any) => {
         router.push(`/product/${id}`)
     }
+    const handleNextPage = () => {
+        dispatch(setPage(currentPage + 1));
+    };
 
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            dispatch(setPage(currentPage - 1));
+        }
+    };
     return (
         <div className="py-6 px-4 md:px-8 lg:px-20">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 gap-6 w-full">
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product, index) => (
                     <div
                         key={product.id}
                         className="rounded-lg shadow-sm border border-athens-gray
@@ -64,6 +87,7 @@ const Products = () => {
                                 onError={() =>
                                     setFailedImages((prev) => ({ ...prev, [product.id]: true }))
                                 }
+                                priority={index < 4}
                             />
                         </div>
                         <div className='p-4 flex flex-col grow justify-between'>
@@ -108,6 +132,38 @@ const Products = () => {
                     </p>
                 </div>
             ) : null}
+
+            <div className="flex justify-center items-center gap-2 mt-10">
+                <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-md border border-athens-gray cursor-pointer
+        disabled:opacity-40 disabled:cursor-not-allowed hover:bg-athens-gray"
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </button>
+                {getVisiblePages().map((page) => (
+                    <button
+                        key={page}
+                        onClick={() => dispatch(setPage(page))}
+                        className={`w-9 h-9 rounded-md text-sm font-medium cursor-pointer ${currentPage === page
+                                ? "bg-red-500 text-white"
+                                : "border border-athens-gray hover:bg-athens-gray"
+                            }`}
+                    >
+                        {page}
+                    </button>
+                ))}
+
+                <button
+                    onClick={handleNextPage}
+                    disabled={!hasMore}
+                    className="p-2 rounded-md border border-athens-gray cursor-pointer
+                    disabled:opacity-40 disabled:cursor-not-allowed hover:bg-athens-gray"
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </button>
+            </div>
         </div>
     );
 };

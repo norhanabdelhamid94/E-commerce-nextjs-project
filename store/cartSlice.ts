@@ -15,6 +15,9 @@ interface ICartState {
     selectedProduct: IProduct | null;
     status: "idle" | "loading" | "succeeded" | "failed";
     error: string | null;
+    currentPage: number;
+    hasMore: boolean;
+    totalProducts: number;
 }
 
 const initialState: ICartState = {
@@ -24,6 +27,9 @@ const initialState: ICartState = {
     selectedProduct: null,
     status: "idle",
     error: null,
+    currentPage: 1,
+    hasMore: true,
+    totalProducts: 0
 };
 
 
@@ -39,16 +45,18 @@ export const fetchProductById = createAsyncThunk(
             throw new Error("Failed to fetch product");
         }
 
-        const data: IProduct = await response.json();        
+        const data: IProduct = await response.json();
         return data;
     }
 );
 
 export const fetchProducts = createAsyncThunk(
     "cart/fetchProducts",
-    async () => {
+    async (page: number = 1) => {
+        const limit = 12;
+        const offset = (page - 1) * limit;
         const response = await fetch(
-            "https://api.escuelajs.co/api/v1/products",
+            `https://api.escuelajs.co/api/v1/products?offset=${offset}&limit=${limit}`,
             { cache: "no-store" }
         );
 
@@ -56,8 +64,26 @@ export const fetchProducts = createAsyncThunk(
             throw new Error("Failed to fetch products");
         }
 
-        const data: IProduct[] = await response.json();        
+        const data: IProduct[] = await response.json();
+        console.log(data,'dataaa');
+        
         return data;
+    }
+);
+
+export const fetchTotalProductsCount = createAsyncThunk(
+    "cart/fetchTotalProductsCount",
+    async () => {
+        const response = await fetch("https://api.escuelajs.co/api/v1/products");
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch total products count");
+        }
+
+        const data: IProduct[] = await response.json();
+        console.log(data.length,'data.length');
+        
+        return data.length;
     }
 );
 
@@ -77,12 +103,16 @@ const cartSlice = createSlice({
                 state.items.push({ product, quantity });
             }
         },
+        setPage: (state, action: PayloadAction<number>) => {
+            state.currentPage = action.payload;
+        },
+
         removeFromCart: (state, action) => {
             const { productId, quantity } = action.payload;
             const existingItemIndex = state.items.findIndex(
                 (item) => item.product.id === productId
             );
-            if (existingItemIndex === 1) return;
+            if (existingItemIndex === -1) return;
 
             const existingItem = state.items[existingItemIndex];
             if (existingItem.quantity > quantity) {
@@ -94,14 +124,14 @@ const cartSlice = createSlice({
         filterProduct: (state, action: PayloadAction<string>) => {
             const searchTerm = action.payload;
 
-             state.filteredProducts = state.products.filter((item) =>
+            state.filteredProducts = state.products.filter((item) =>
                 item.title?.toLowerCase().includes(searchTerm) ||
                 item.category?.name?.toLowerCase().includes(searchTerm)
             );
         },
     },
 
-        extraReducers: (builder) => {
+    extraReducers: (builder) => {
         builder
             .addCase(fetchProducts.pending, (state) => {
                 state.status = "loading";
@@ -110,7 +140,8 @@ const cartSlice = createSlice({
             .addCase(fetchProducts.fulfilled, (state, action) => {
                 state.status = "succeeded";
                 state.products = action.payload;
-                state.filteredProducts = action.payload; 
+                state.filteredProducts = action.payload;
+                state.hasMore = action.payload.length === 12;
             })
             .addCase(fetchProducts.rejected, (state, action) => {
                 state.status = "failed";
@@ -118,19 +149,22 @@ const cartSlice = createSlice({
             })
 
             .addCase(fetchProductById.pending, (state) => {
-            state.status = "loading";
-            state.error = null;
+                state.status = "loading";
+                state.error = null;
             })
             .addCase(fetchProductById.fulfilled, (state, action) => {
-            state.status = "succeeded";
-            state.selectedProduct = action.payload;
+                state.status = "succeeded";
+                state.selectedProduct = action.payload;
             })
             .addCase(fetchProductById.rejected, (state, action) => {
-            state.status = "failed";
-            state.error = action.error.message ?? "Product not found";
+                state.status = "failed";
+                state.error = action.error.message ?? "Product not found";
+            })
+            .addCase(fetchTotalProductsCount.fulfilled, (state, action) => {
+                state.totalProducts = action.payload;
             });
-   },
+    },
 });
 
-export const { addToCart, removeFromCart, filterProduct } = cartSlice.actions;
+export const { addToCart, removeFromCart, filterProduct, setPage } = cartSlice.actions;
 export default cartSlice.reducer;

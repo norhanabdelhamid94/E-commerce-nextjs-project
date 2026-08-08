@@ -101,6 +101,7 @@ const ProductDetails = () => {
                             fill
                             alt={`${product.title} - image ${currentImageIndex + 1}`}
                             className="object-cover"
+                            priority
                             onLoad={() => setImageLoading(false)}
                             onError={() => {
                                 setImgFailed(true);
