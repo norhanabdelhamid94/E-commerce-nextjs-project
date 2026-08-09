@@ -26,10 +26,18 @@ interface ISignupResponse {
   id: number;
 }
 
+interface IProfileResponse {
+  email: string;
+  name: string;
+  avatar: string;
+  role: string;
+  id: number;
+}
+
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
-  user: ISignupResponse | null;
+  user: ISignupResponse | IProfileResponse | null; // ✅
   loading: boolean;
   error: string | null;
 }
@@ -51,9 +59,7 @@ export const loginFunction = createAsyncThunk(
       "https://api.escuelajs.co/api/v1/auth/login",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       }
     );
@@ -72,9 +78,7 @@ export const signUpFunction = createAsyncThunk(
   async (userData: ISignupData) => {
     const response = await fetch("https://api.escuelajs.co/api/v1/users/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
 
@@ -87,6 +91,28 @@ export const signUpFunction = createAsyncThunk(
   }
 );
 
+export const getProfileFunction = createAsyncThunk(
+  "auth/userProfile", // ✅ اتصلح
+  async (token: string) => { // ✅ بتاخد التوكن دلوقتي
+    const response = await fetch(
+      "https://api.escuelajs.co/api/v1/auth/profile",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ اتضاف
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch profile");
+    }
+
+    const data: IProfileResponse = await response.json(); // ✅ اتصلح (من غير [])
+    return data;
+  }
+);
+
 // ====================== Slice ======================
 
 const authSlice = createSlice({
@@ -95,7 +121,6 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // ---- Login ----
       .addCase(loginFunction.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -109,7 +134,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Login failed";
       })
-      // ---- Signup ----
       .addCase(signUpFunction.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -121,6 +145,18 @@ const authSlice = createSlice({
       .addCase(signUpFunction.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Signup failed";
+      })
+      .addCase(getProfileFunction.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getProfileFunction.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // ✅ اتصلح
+      })
+      .addCase(getProfileFunction.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch profile"; // ✅ رسالة أدق
       });
   },
 });
